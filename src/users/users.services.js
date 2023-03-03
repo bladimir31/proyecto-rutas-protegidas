@@ -1,5 +1,6 @@
 const usersControllers = require('./users.controllers')
 const responses = require('../utils/responses.handler')
+const { hashPassword } = require('../utils/crypto')
 
 const getAllUsers = (req, res) => {
     usersControllers.findAllUser()
@@ -157,10 +158,86 @@ const deleteUser = (req, res) => {
         })
 }
 
+//Servicios sobre mi usuario
+const getMyUser = (req,res) => {
+    const id = req.user.id
+    usersControllers.findUserById(id)
+    .then( data => {
+     responses.success({
+        res,
+        status: 200,
+        message: 'this is your currente user',
+        data
+     })
+    })
+    .catch( err => {
+        responses.error({
+            res,
+            status: 400,
+            message: 'Something bad getting the current user',
+            data: err
+        })
+    })
+}
+
+const deleteMyUser = (req,res) => {
+    const id = req.user.id
+    usersControllers.deleteUser(id)
+    .then( data => {
+     responses.success({
+        res,
+        status: 200,
+        message: `User deleted succesfullywhit id: ${id}`,
+     })
+    })
+    .catch( err => {
+        responses.error({
+            res,
+            status: 400,
+            message: 'Something bad trying to delete thi user',
+        })
+    })
+}
+
+const patchMyUser = (req,res) => {
+    const id = req.user.id
+    const {firstName,lastName,email,password,profileImage,phone} = req.body
+
+    const userObj = {
+        firstName,
+        lastName,
+        email,
+        password: hashPassword(password),
+        profileImage,
+        phone
+    }
+
+    usersControllers.updateUser(id,userObj)
+    .then( data => {
+     responses.success({
+        res,
+        status: 200,
+        message: 'Your has been uptaded succesfully',
+     })
+    })
+    .catch( err => {
+        responses.error({
+            res,
+            status: 400,
+            message: 'Something bad',
+            data: err
+        })
+    })
+}
+
+
 module.exports = {
     getAllUsers,
     getUserById,
     postNewUser,
     patchUser,
-    deleteUser
+    deleteUser,
+    getMyUser,
+    deleteMyUser,
+    patchMyUser
 }

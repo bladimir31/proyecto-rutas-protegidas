@@ -3,15 +3,17 @@ const express = require('express')
 
 //? File imports
 const config = require('../config')
-const { error, success } =require('./utils/responses.handler')
+const { error, success } = require('./utils/responses.handler')
 const db = require('./utils/database')
+const passportJwt = require('./middlewares/auth.middleware')
 //? Router Imports
 const userRouter = require('./users/users.router')
+const authRouter = require('./auth/auth.router')
 
 //? Initial Configs
 const app = express()
 app.use(express.json())
-app.use(express.urlencoded({extended: false}))
+app.use(express.urlencoded({ extended: false }))
 //? Database Configs
 
 db.authenticate()
@@ -34,7 +36,16 @@ app.get('/', (req, res) => {
     })
 })
 
+app.get('/protected',
+    passportJwt,
+    (req, res) => {
+        res.status(200).json({
+            message: 'Solo veras este mensaje si tienes sesion iniciada'
+        })
+    })
+
 app.use('/api/v1/users', userRouter)
+app.use('/api/v1/auth', authRouter)
 
 //? 404 Error Handler
 app.use('*', (req, res) => {
